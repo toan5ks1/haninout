@@ -13,21 +13,49 @@ import {
   Text,
   useColorModeValue,
   Link,
+  FormErrorMessage,
+  Icon,
+  InputLeftElement,
+  useDisclosure,
 } from "@chakra-ui/react";
 import { useState } from "react";
-import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
+import {
+  AtSignIcon,
+  UnlockIcon,
+  ViewIcon,
+  ViewOffIcon,
+} from "@chakra-ui/icons";
+import MyButton from "~/components/common/button/MyButton";
+import { useForm } from "react-hook-form";
+import useSignup from "~/hooks/useSignup";
+import { FaUser } from "react-icons/fa";
+import VerifyOTPModal from "~/components/modal/VerifyOPTModal";
 
 export default function SignupCard() {
   const [showPassword, setShowPassword] = useState(false);
+  const { signup, isLoading, isError, isSuccess, error } = useSignup();
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
+
+  const handleSignup = (data: any) => {
+    console.log(data);
+    signup({ data: data }, "mock api enpoint");
+    onOpen();
+  };
 
   return (
     <Flex
-      minH={"100vh"}
+      h="100%"
       align={"center"}
       justify={"center"}
       bg={useColorModeValue("gray.50", "gray.800")}
     >
-      <Stack spacing={8} mx={"auto"} maxW={"lg"} py={12} px={6}>
+      <Stack spacing={8} mx={"auto"} maxW={"lg"} py={12} px={6} w={"md"}>
         <Stack align={"center"}>
           <Heading fontSize={"4xl"} textAlign={"center"}>
             Sign up
@@ -43,28 +71,68 @@ export default function SignupCard() {
           p={8}
         >
           <Stack spacing={4}>
-            <HStack>
-              <Box>
-                <FormControl id="firstName" isRequired>
-                  <FormLabel>First Name</FormLabel>
-                  <Input type="text" />
-                </FormControl>
-              </Box>
-              <Box>
-                <FormControl id="lastName">
-                  <FormLabel>Last Name</FormLabel>
-                  <Input type="text" />
-                </FormControl>
-              </Box>
-            </HStack>
-            <FormControl id="email" isRequired>
-              <FormLabel>Email address</FormLabel>
-              <Input type="email" />
+            <FormControl
+              id="username"
+              isRequired
+              isInvalid={Boolean(errors.username)}
+            >
+              <FormLabel htmlFor="username">User name</FormLabel>
+              <InputGroup>
+                <InputLeftElement pointerEvents="none">
+                  <Icon as={FaUser} color="gray.300" />
+                </InputLeftElement>
+                <Input
+                  placeholder="example"
+                  type="text"
+                  {...register("username", { required: true })}
+                />
+              </InputGroup>
+              <FormErrorMessage>Hãy nhập user name của bạn</FormErrorMessage>
             </FormControl>
-            <FormControl id="password" isRequired>
+            <FormControl
+              id="email"
+              isRequired
+              isInvalid={Boolean(errors.email)}
+            >
+              <FormLabel>Email address</FormLabel>
+              <InputGroup>
+                <InputLeftElement pointerEvents="none">
+                  <AtSignIcon color="gray.300" />
+                </InputLeftElement>
+                <Input
+                  placeholder="example@gmail.com"
+                  type="email"
+                  {...register("email", {
+                    required: true,
+                    pattern: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                  })}
+                />
+              </InputGroup>
+              {errors.email && (
+                <FormErrorMessage>
+                  {errors.email.type === "required" && "Hãy nhập email của bạn"}
+                  {errors.email.type === "pattern" && "Email không hợp lệ"}
+                </FormErrorMessage>
+              )}
+            </FormControl>
+            <FormControl
+              id="password"
+              isRequired
+              isInvalid={Boolean(errors.password)}
+            >
               <FormLabel>Password</FormLabel>
               <InputGroup>
-                <Input type={showPassword ? "text" : "password"} />
+                <Input
+                  placeholder="Remember it"
+                  type={showPassword ? "text" : "password"}
+                  {...register("password", {
+                    required: true,
+                    pattern: /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)[A-Za-z\d]{8,}$/,
+                  })}
+                />
+                <InputLeftElement pointerEvents="none">
+                  <UnlockIcon color="gray.300" />
+                </InputLeftElement>
                 <InputRightElement h={"full"}>
                   <Button
                     variant={"ghost"}
@@ -76,27 +144,39 @@ export default function SignupCard() {
                   </Button>
                 </InputRightElement>
               </InputGroup>
+              {errors.password && (
+                <FormErrorMessage>
+                  {errors.password.type === "required" &&
+                    "Hãy nhập password của bạn"}
+                  {errors.password.type === "pattern" &&
+                    `
+                  The password must contain at least: one uppercase letter,
+                  one lowercase letter,
+                  one digit,
+                  and must be at least 8 characters long.
+                  `}
+                </FormErrorMessage>
+              )}
             </FormControl>
             <Stack spacing={10} pt={2}>
-              <Button
+              <MyButton
                 loadingText="Submitting"
-                size="lg"
-                bg={"blue.400"}
-                color={"white"}
-                _hover={{
-                  bg: "blue.500",
-                }}
+                onClick={handleSubmit(handleSignup)}
               >
                 Sign up
-              </Button>
+              </MyButton>
             </Stack>
-            <Stack pt={6}>
-              <Text align={"center"}>
-                Already a user? <Link color={"blue.400"}>Login</Link>
-              </Text>
+            <Stack
+              direction={{ base: "column", sm: "row" }}
+              align={"start"}
+              justify={"space-between"}
+            >
+              <Text align={"center"}>Already a user?</Text>
+              <Link color={"blue.400"}>Login</Link>
             </Stack>
           </Stack>
         </Box>
+        <VerifyOTPModal isOpen={isOpen} onClose={onClose} />
       </Stack>
     </Flex>
   );

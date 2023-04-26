@@ -23,9 +23,7 @@ export function Layout({
     >
       {/* minHeight equals to 100vh minus header height */}
       <Navbar t={t} />
-      <Box minH="calc(100vh - 60px)">
-        <main id="main">{children}</main>
-      </Box>
+      <Box minH="calc(100vh - 60px)">{children}</Box>
       <Footer />
     </Box>
   );

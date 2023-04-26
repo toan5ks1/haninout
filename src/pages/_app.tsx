@@ -8,6 +8,9 @@ import { api } from "~/utils/api";
 
 import "~/styles/globals.css";
 import theme from "~/styles/theme";
+import { QueryClient, QueryClientProvider } from "react-query";
+
+const queryClient = new QueryClient();
 
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,
@@ -15,9 +18,11 @@ const MyApp: AppType<{ session: Session | null }> = ({
 }) => {
   return (
     <SessionProvider session={session}>
-      <ChakraProvider theme={theme}>
-        <Component {...pageProps} />
-      </ChakraProvider>
+      <QueryClientProvider client={queryClient}>
+        <ChakraProvider theme={theme}>
+          <Component {...pageProps} />
+        </ChakraProvider>
+      </QueryClientProvider>
     </SessionProvider>
   );
 };

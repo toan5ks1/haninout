@@ -70,8 +70,8 @@ export default function Nav({ t }: any) {
                 "/assets/images/logo.png",
                 "/assets/images/logo_dark.png"
               )}
-              w="110px"
-              h={{ base: "40px", md: "44px" }}
+              h={{ base: "40px", md: "64px" }}
+              w="auto"
             />
           </NextLink>
           {/* <Flex display={{ base: "none", md: "flex" }} ml={10}>

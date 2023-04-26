@@ -1,7 +1,7 @@
 import {
   Box,
   chakra,
-  Flex,
+  HStack,
   Stack,
   Text,
   useColorModeValue,
@@ -48,31 +48,22 @@ export default function Footer() {
       bg={useColorModeValue("white", "gray.800")}
       color={useColorModeValue("gray.600", "gray.200")}
     >
-      <Flex
-        w={"100vw"}
-        p={5  }
+      <HStack
+        p={5}
+        justify="center"
         borderTop={1}
         borderStyle={"solid"}
         borderColor={useColorModeValue("gray.200", "gray.900")}
-        direction="column"
-        align={"center"}
-        justify={"center"}
-        position="relative"
       >
-        <Text fontSize={12} align={"center"} color={"gray.500"}>
-          ©2023 Haninou
-        </Text>
-        {/* <Text align={"center"} fontSize={12} color={"gray.500"}>
-          Tầng 10, Tòa nhà Pearl 5, số 5 Lê Quý Đôn, phường Võ Thị Sáu, Quận 3,
-          Thành phố Hồ Chí Minh
-        </Text> */}
-        <Stack
-          direction={"row"}
-          spacing={6}
-          position="absolute"
-          right={8}
-          bottom={2}
-        >
+        <Box>
+          <Text fontSize={12} align={"center"} color={"gray.500"}>
+            ©2023 Haninou
+          </Text>
+          <Text align={"center"} fontSize={12} color={"gray.500"}>
+            Powered by Botoccoder
+          </Text>
+        </Box>
+        <Stack direction={"row"} spacing={6} position="absolute" right={4}>
           <SocialButton label={"Twitter"} href={"#"}>
             <FaTwitter />
           </SocialButton>
@@ -83,7 +74,7 @@ export default function Footer() {
             <FaInstagram />
           </SocialButton>
         </Stack>
-      </Flex>
+      </HStack>
     </Box>
   );
 }
