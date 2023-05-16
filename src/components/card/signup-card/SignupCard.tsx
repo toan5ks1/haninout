@@ -5,7 +5,6 @@ import {
   FormLabel,
   Input,
   InputGroup,
-  HStack,
   InputRightElement,
   Stack,
   Button,
@@ -18,7 +17,7 @@ import {
   InputLeftElement,
   useDisclosure,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import {
   AtSignIcon,
   UnlockIcon,
@@ -27,26 +26,35 @@ import {
 } from "@chakra-ui/icons";
 import MyButton from "~/components/common/button/MyButton";
 import { useForm } from "react-hook-form";
-import useSignup from "~/hooks/useSignup";
 import { FaUser } from "react-icons/fa";
 import VerifyOTPModal from "~/components/modal/VerifyOPTModal";
+import router from "next/router";
+import { ISignUp, signUpSchema } from "~/common/validation/auth";
+import { trpc } from "~/utils/trpc";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 export default function SignupCard() {
   const [showPassword, setShowPassword] = useState(false);
-  const { signup, isLoading, isError, isSuccess, error } = useSignup();
   const { isOpen, onOpen, onClose } = useDisclosure();
-
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm();
+  } = useForm<ISignUp>({
+    resolver: zodResolver(signUpSchema),
+  });
 
-  const handleSignup = (data: any) => {
-    console.log(data);
-    signup({ data: data }, "mock api enpoint");
-    onOpen();
-  };
+  const userCreator = trpc.userRouter.signup.useMutation();
+
+  const handleSignup = useCallback(
+    async (data: ISignUp) => {
+      const result = await userCreator.mutateAsync(data);
+      if (result.status === 201) {
+        router.push("/");
+      }
+    },
+    [userCreator, router]
+  );
 
   return (
     <Flex
