@@ -4,13 +4,13 @@ import {
   type NextAuthOptions,
   type DefaultSession,
 } from "next-auth";
-import DiscordProvider from "next-auth/providers/discord";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { env } from "~/env.mjs";
 import { prisma } from "~/server/db";
 import { verify } from "argon2";
-import { loginSchema } from "~/common/validation/auth";
+import { loginSchema } from "~/common/validation/auth_validation";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -61,15 +61,15 @@ export const authOptions: NextAuthOptions = {
     secret: "super-secret",
     maxAge: 15 * 24 * 30 * 60, // 15 days
   },
-  pages: {
-    signIn: "/login",
-    newUser: "/signup",
-  },
+  // pages: {
+  //   signIn: "/",
+  //   newUser: "/signup",
+  // },
   adapter: PrismaAdapter(prisma),
   providers: [
-    DiscordProvider({
-      clientId: env.DISCORD_CLIENT_ID,
-      clientSecret: env.DISCORD_CLIENT_SECRET,
+    GoogleProvider({
+      clientId: process.env.GOOGLE_ID as string,
+      clientSecret: process.env.GOOGLE_SECRET as string,
     }),
     CredentialsProvider({
       name: "credentials",

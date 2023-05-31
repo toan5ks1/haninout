@@ -16,6 +16,9 @@ import {
   Collapse,
   Icon,
   Image,
+  Avatar,
+  Center,
+  MenuDivider,
 } from "@chakra-ui/react";
 import {
   MoonIcon,
@@ -28,8 +31,10 @@ import { RiGlobalFill } from "react-icons/ri";
 import { useRouter } from "next/router";
 import NextLink from "next/link";
 import MyButton from "../common/button/MyButton";
+import { useSession } from "next-auth/react";
 
 export default function Nav({ t }: any) {
+  const { data: session } = useSession();
   const { colorMode, toggleColorMode } = useColorMode();
   const { isOpen, onToggle } = useDisclosure();
   const { asPath } = useRouter();
@@ -50,7 +55,6 @@ export default function Nav({ t }: any) {
       >
         <Flex
           flex={{ base: 1, md: "auto" }}
-          ml={{ base: -2 }}
           display={{ base: "flex", md: "none" }}
         >
           <IconButton
@@ -74,18 +78,46 @@ export default function Nav({ t }: any) {
               w="auto"
             />
           </NextLink>
-          {/* <Flex display={{ base: "none", md: "flex" }} ml={10}>
-            <DesktopNav />
-          </Flex> */}
         </Flex>
         <Flex alignItems={"center"}>
-          <Stack direction={"row"} spacing={7}>
-            <MyButton
-              variant={"outline"}
-              display={{ base: "none", md: "flex" }}
-            >
-              {t("login")}
-            </MyButton>
+          <Stack direction={"row"} spacing={[2, 6]}>
+            {!session && (
+              <MyButton
+                variant={"outline"}
+                display={{ base: "none", md: "flex" }}
+              >
+                {t("login")}
+              </MyButton>
+            )}
+
+            {session && (
+              <Menu>
+                <MenuButton
+                  as={Button}
+                  rounded={"full"}
+                  variant={"link"}
+                  cursor={"pointer"}
+                  minW={0}
+                >
+                  <Avatar size={"sm"} />
+                </MenuButton>
+                <MenuList alignItems={"center"}>
+                  <br />
+                  <Center>
+                    <Avatar size={"2xl"} />
+                  </Center>
+                  <br />
+                  <Center>
+                    <p>Username</p>
+                  </Center>
+                  <br />
+                  <MenuDivider />
+                  <MenuItem>Your Profile</MenuItem>
+                  <MenuItem>Settings</MenuItem>
+                  <MenuItem>Logout</MenuItem>
+                </MenuList>
+              </Menu>
+            )}
             <Button aria-label="toggle-theme" onClick={toggleColorMode}>
               {colorMode === "light" ? <MoonIcon /> : <SunIcon />}
             </Button>
@@ -122,109 +154,6 @@ export default function Nav({ t }: any) {
     </Box>
   );
 }
-
-const DesktopNav = () => {
-  const linkColor = useColorModeValue("gray.600", "gray.200");
-  const linkHoverColor = useColorModeValue("gray.800", "white");
-  const popoverContentBgColor = useColorModeValue("white", "gray.800");
-
-  return (
-    <Stack direction={"row"} spacing={4}>
-      {NAV_ITEMS.map((navItem) => (
-        <Flex key={navItem.label} justify="flex-end" align="flex-end">
-          <Link
-            p={0}
-            href={navItem.href ?? "#"}
-            fontSize={"sm"}
-            fontWeight={500}
-            color={linkColor}
-            _hover={{
-              textDecoration: "none",
-              color: linkHoverColor,
-            }}
-          >
-            {navItem.label}
-          </Link>
-          {/* <Popover
-            trigger={"hover"}
-            placement={"bottom-start"}
-            arrowPadding={0}
-          >
-            <PopoverTrigger p={0}>
-              <Link
-                p={2}
-                href={navItem.href ?? "#"}
-                fontSize={"sm"}
-                fontWeight={500}
-                color={linkColor}
-                _hover={{
-                  textDecoration: "none",
-                  color: linkHoverColor,
-                }}
-              >
-                {navItem.label}
-              </Link>
-            </PopoverTrigger>
-
-            {navItem.children && (
-              <PopoverContent
-                border={0}
-                FlexShadow={"xl"}
-                bg={popoverContentBgColor}
-                p={4}
-                rounded={"xl"}
-                minW={"sm"}
-              >
-                <Stack>
-                  {navItem.children.map((child) => (
-                    <DesktopSubNav key={child.label} {...child} />
-                  ))}
-                </Stack>
-              </PopoverContent>
-            )}
-          </Popover> */}
-        </Flex>
-      ))}
-    </Stack>
-  );
-};
-
-// const DesktopSubNav = ({ label, href, subLabel }: NavItem) => {
-//   return (
-//     <Link
-//       href={href}
-//       role={"group"}
-//       display={"block"}
-//       p={2}
-//       rounded={"md"}
-//       _hover={{ bg: useColorModeValue("pink.50", "gray.900") }}
-//     >
-//       <Stack direction={"row"} align={"center"}>
-//         <Box>
-//           <Text
-//             transition={"all .3s ease"}
-//             _groupHover={{ color: "pink.400" }}
-//             fontWeight={500}
-//           >
-//             {label}
-//           </Text>
-//           <Text fontSize={"sm"}>{subLabel}</Text>
-//         </Box>
-//         <Flex
-//           transition={"all .3s ease"}
-//           transform={"translateX(-10px)"}
-//           opacity={0}
-//           _groupHover={{ opacity: "100%", transform: "translateX(0)" }}
-//           justify={"flex-end"}
-//           align={"center"}
-//           flex={1}
-//         >
-//           <Icon color={"pink.400"} w={5} h={5} as={ChevronRightIcon} />
-//         </Flex>
-//       </Stack>
-//     </Link>
-//   );
-// };
 
 const MobileNav = () => {
   return (
