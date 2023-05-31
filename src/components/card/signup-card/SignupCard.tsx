@@ -5,10 +5,7 @@ import {
   FormLabel,
   Input,
   InputGroup,
-  HStack,
-  InputRightElement,
   Stack,
-  Button,
   Heading,
   Text,
   useColorModeValue,
@@ -18,35 +15,43 @@ import {
   InputLeftElement,
   useDisclosure,
 } from "@chakra-ui/react";
-import { useState } from "react";
-import {
-  AtSignIcon,
-  UnlockIcon,
-  ViewIcon,
-  ViewOffIcon,
-} from "@chakra-ui/icons";
+import { useCallback } from "react";
+import { AtSignIcon } from "@chakra-ui/icons";
 import MyButton from "~/components/common/button/MyButton";
 import { useForm } from "react-hook-form";
-import useSignup from "~/hooks/useSignup";
 import { FaUser } from "react-icons/fa";
 import VerifyOTPModal from "~/components/modal/VerifyOPTModal";
+import router from "next/router";
+import { trpc } from "~/utils/trpc";
+import { zodResolver } from "@hookform/resolvers/zod";
+import FacebookButton from "~/components/common/button/FacebookButton";
+import GoogleButton from "~/components/common/button/GoogleButton";
+import { ISignUp, signUpSchema } from "~/common/validation/auth_validation";
+import PasswordField from "~/components/common/form/field/PasswordField";
+import { signIn } from "next-auth/react";
 
 export default function SignupCard() {
-  const [showPassword, setShowPassword] = useState(false);
-  const { signup, isLoading, isError, isSuccess, error } = useSignup();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const {
     register,
     handleSubmit,
-    formState: { errors },
-  } = useForm();
+    formState: { errors, isSubmitting },
+  } = useForm<ISignUp>({
+    resolver: zodResolver(signUpSchema),
+  });
 
-  const handleSignup = (data: any) => {
-    console.log(data);
-    signup({ data: data }, "mock api enpoint");
-    onOpen();
-  };
+  const userCreator = trpc.userRouter.signup.useMutation();
+
+  const handleSignup = useCallback(
+    async (data: ISignUp) => {
+      const result = await userCreator.mutateAsync(data);
+      if (result.status === 201) {
+        router.push("/");
+      }
+    },
+    [userCreator, router]
+  );
 
   return (
     <Flex
@@ -68,115 +73,76 @@ export default function SignupCard() {
           rounded={"lg"}
           bg={useColorModeValue("white", "gray.700")}
           boxShadow={"lg"}
-          p={8}
+          p={[6, 8]}
         >
           <Stack spacing={4}>
-            <FormControl
-              id="username"
-              isRequired
-              isInvalid={Boolean(errors.username)}
-            >
-              <FormLabel htmlFor="username">User name</FormLabel>
+            <FormControl id="username" isInvalid={Boolean(errors.username)}>
+              <FormLabel>Username</FormLabel>
               <InputGroup>
                 <InputLeftElement pointerEvents="none">
                   <Icon as={FaUser} color="gray.300" />
                 </InputLeftElement>
-                <Input
-                  placeholder="example"
-                  type="text"
-                  {...register("username", { required: true })}
-                />
+                <Input placeholder="Example" {...register("username")} />
               </InputGroup>
-              <FormErrorMessage>Hãy nhập user name của bạn</FormErrorMessage>
+              <FormErrorMessage>{errors.username?.message}</FormErrorMessage>
             </FormControl>
-            <FormControl
-              id="email"
-              isRequired
-              isInvalid={Boolean(errors.email)}
-            >
+
+            <FormControl id="email" isInvalid={Boolean(errors.email)}>
               <FormLabel>Email address</FormLabel>
               <InputGroup>
                 <InputLeftElement pointerEvents="none">
                   <AtSignIcon color="gray.300" />
                 </InputLeftElement>
-                <Input
-                  placeholder="example@gmail.com"
-                  type="email"
-                  {...register("email", {
-                    required: true,
-                    pattern: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  })}
-                />
+                <Input placeholder="Example@gmail.com" {...register("email")} />
               </InputGroup>
-              {errors.email && (
-                <FormErrorMessage>
-                  {errors.email.type === "required" && "Hãy nhập email của bạn"}
-                  {errors.email.type === "pattern" && "Email không hợp lệ"}
-                </FormErrorMessage>
-              )}
+              <FormErrorMessage>{errors.email?.message}</FormErrorMessage>
             </FormControl>
-            <FormControl
-              id="password"
-              isRequired
-              isInvalid={Boolean(errors.password)}
-            >
+
+            <FormControl id="password" isInvalid={Boolean(errors.password)}>
               <FormLabel>Password</FormLabel>
-              <InputGroup>
-                <Input
-                  placeholder="Remember it"
-                  type={showPassword ? "text" : "password"}
-                  {...register("password", {
-                    required: true,
-                    pattern: /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)[A-Za-z\d]{8,}$/,
-                  })}
-                />
-                <InputLeftElement pointerEvents="none">
-                  <UnlockIcon color="gray.300" />
-                </InputLeftElement>
-                <InputRightElement h={"full"}>
-                  <Button
-                    variant={"ghost"}
-                    onClick={() =>
-                      setShowPassword((showPassword) => !showPassword)
-                    }
-                  >
-                    {showPassword ? <ViewIcon /> : <ViewOffIcon />}
-                  </Button>
-                </InputRightElement>
-              </InputGroup>
-              {errors.password && (
-                <FormErrorMessage>
-                  {errors.password.type === "required" &&
-                    "Hãy nhập password của bạn"}
-                  {errors.password.type === "pattern" &&
-                    `
-                  The password must contain at least: one uppercase letter,
-                  one lowercase letter,
-                  one digit,
-                  and must be at least 8 characters long.
-                  `}
-                </FormErrorMessage>
-              )}
+              <PasswordField
+                placeholder="Enter password"
+                register={register("password")}
+              />
+              <FormErrorMessage>{errors.password?.message}</FormErrorMessage>
             </FormControl>
-            <Stack spacing={10} pt={2}>
-              <MyButton
-                loadingText="Submitting"
-                onClick={handleSubmit(handleSignup)}
-              >
-                Sign up
-              </MyButton>
-            </Stack>
-            <Stack
-              direction={{ base: "column", sm: "row" }}
-              align={"start"}
-              justify={"space-between"}
+
+            <FormControl
+              id="confirm-password"
+              isInvalid={Boolean(errors.confirmPassword)}
             >
-              <Text align={"center"}>Already a user?</Text>
-              <Link color={"blue.400"}>Login</Link>
+              <FormLabel>Confirm password</FormLabel>
+              <PasswordField
+                placeholder="Retype password"
+                register={register("confirmPassword")}
+              />
+              <FormErrorMessage>
+                {errors.confirmPassword?.message}
+              </FormErrorMessage>
+            </FormControl>
+          </Stack>
+
+          <Stack spacing={2} py={6}>
+            <MyButton
+              loadingText="Submitting"
+              onClick={handleSubmit(handleSignup)}
+            >
+              Sign up
+            </MyButton>
+            <Stack pt={2}>
+              <GoogleButton
+                onClick={() => signIn("google", { callbackUrl: "/" })}
+              />
+              <FacebookButton />
             </Stack>
           </Stack>
+
+          <Stack direction={"row"} align={"start"} justify={"space-between"}>
+            <Text align={"center"}>Already a user?</Text>
+            <Link color={"blue.400"}>Login</Link>
+          </Stack>
         </Box>
-        <VerifyOTPModal isOpen={isOpen} onClose={onClose} />
+        <VerifyOTPModal isOpen={isSubmitting} onClose={onClose} />
       </Stack>
     </Flex>
   );
